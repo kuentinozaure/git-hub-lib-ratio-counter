@@ -75,6 +75,7 @@ export default {
     async fetchIssues() {
       this.loading = true;
       this.showLoadingMessage = true;
+      this.errorMessage = null;
       this.currentLoadingMessage = this.getRandomLoadingMessage();
 
       const intervalLoadingMessage = setInterval(() => {
