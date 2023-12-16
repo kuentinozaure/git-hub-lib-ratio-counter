@@ -7,7 +7,18 @@
       <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
       <button @click="fetchIssues">Fetch Issues</button>
     </div>
+
     <div v-if="loading">{{ currentLoadingMessage }}</div>
+
+    <div class="owner-avatar" v-if="ownerAvatarUrl">
+      <img :src="ownerAvatarUrl" alt="Owner Avatar" class="owner-avatar-img" />
+    </div>
+
+    <div class="repo-description" v-if="repoDescription">
+      <p>{{ repoDescription }}</p>
+    </div>
+
+
     <div class="issue-counts" v-if="!loading && !errorMessage">
       <div class="open-issues">
         <h2>Open Issues:</h2>
@@ -21,10 +32,10 @@
 
     <div class="issue-ratio" v-if="!loading && numberOfOpenIssues !== null && numberOfClosedIssues !== null">
       <h2>Lib ratio</h2>
-      <p :style="{ color: calculateColorForRatio }" v-if="!showRatioMessage">
+      <p :style="{ color: calculateColorForRatio }">
         {{ calculateRatioAsPercentage }}
       </p>
-      <p v-if="showRatioMessage">{{ currentRatioMessage }}</p>
+
     </div>
   </div>
 </template>
@@ -37,11 +48,10 @@ export default {
       numberOfOpenIssues: null,
       numberOfClosedIssues: null,
       loading: false,
-      errorMessage: null,
-      currentRatioMessage: "",
-      showRatioMessage: false,
       showLoadingMessage: false,
       currentLoadingMessage: "",
+      repoDescription: "",
+      ownerAvatarUrl: "",
     };
   },
 
@@ -83,43 +93,16 @@ export default {
       }, 500);
 
 
-      await this.getOpenIssueCount();
-      await this.getClosedIssueCount();
+      Promise.all([
+        this.getReposInfos(),
+        this.getOpenIssueCount(),
+        this.getClosedIssueCount(),
+      ]);
       this.showLoadingMessage = false;
       clearInterval(intervalLoadingMessage);
       this.loading = false;
-
-      this.showRatioMessage = true;
-      this.currentRatioMessage = this.getRandomRatioMessage();
-
-
-      const intervalRatioMessage = setInterval(() => {
-        this.currentRatioMessage = this.getRandomRatioMessage();
-      }, 500);
-
-      // Clear the interval after 4 seconds
-      setTimeout(() => {
-        clearInterval(intervalRatioMessage);
-        this.showRatioMessage = false;
-      }, 4000);
     },
 
-    getRandomRatioMessage() {
-      const messages = [
-        "Analyzing the ratio with precision and grace. 📊✨",
-        "This ratio, a TED Talk in itself. 🎤🌟",
-        "A mathematical masterpiece. 🎨🧑‍🎨",
-        "Elegance in mathematical calculation. 👨‍🏫🔍",
-        "In ratios, this is the Mozart. 🎻🎶",
-        "So refined, it has its own monocle. 🧐🔍",
-        "Where precision meets perfection. 💎🌟",
-        "Sophisticated ratio computing. 🌐💼",
-        "Top hat and tails in the realm of ratios. 🎩👔🎶",
-        "A dignified ratio deserving its own symphony. 🎻🎼",
-      ];
-
-      return messages[Math.floor(Math.random() * messages.length)];
-    },
 
     getRandomLoadingMessage() {
       const messages = [
@@ -149,6 +132,22 @@ export default {
           linkHeader,
           true
         );
+      } catch (error) {
+        this.errorMessage =
+          "Error fetching issue data. Please check the repository name.";
+      }
+    },
+
+    async getReposInfos() {
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${this.repoName}`
+        );
+
+        const data = await response.json();
+        this.repoDescription = data.description;
+        this.ownerAvatarUrl = data.owner.avatar_url;
+
       } catch (error) {
         this.errorMessage =
           "Error fetching issue data. Please check the repository name.";

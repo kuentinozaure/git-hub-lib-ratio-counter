@@ -56,6 +56,28 @@
   }
 }
 
+.owner-avatar {
+  display: flex;
+  justify-content: center;
+
+  .owner-avatar-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+}
+
+.repo-description {
+  text-align: center;
+  margin-top: 10px;
+
+  p {
+    font-size: 16px;
+    color: #555;
+  }
+}
+
 .issue-counts {
   display: flex;
   justify-content: space-around;
